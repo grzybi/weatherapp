@@ -5,7 +5,7 @@ import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Build
 import android.os.Bundle
-import android.util.Log
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import pl.wojciechgrzybek.weatherapp.databinding.ActivityMainBinding
 
@@ -21,7 +21,17 @@ class MainActivity : AppCompatActivity() {
         setContentView(view)
 
         setupViewPager()
-        Log.d("isNetworkAvailable", isNetworkAvailable(this@MainActivity).toString())
+        var isNetworkAvailableMessage = ""
+        isNetworkAvailableMessage = if (isNetworkAvailable(this@MainActivity))
+            "Network available"
+        else
+            "Network not available"
+
+        Toast.makeText(
+            this@MainActivity,
+            isNetworkAvailableMessage,
+            Toast.LENGTH_SHORT
+        ).show()
     }
 
     private fun setupViewPager() {
