@@ -1,6 +1,11 @@
 package pl.wojciechgrzybek.weatherapp
 
+import android.content.Context
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
+import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import pl.wojciechgrzybek.weatherapp.databinding.ActivityMainBinding
 
@@ -16,6 +21,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(view)
 
         setupViewPager()
+        Log.d("isNetworkAvailable", isNetworkAvailable(this@MainActivity).toString())
     }
 
     private fun setupViewPager() {
@@ -23,4 +29,23 @@ class MainActivity : AppCompatActivity() {
         viewPager.adapter = ViewPagerAdapter(supportFragmentManager)
     }
 
+    private fun isNetworkAvailable(context: Context): Boolean {
+        val connectivityManager =
+            context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            val network = connectivityManager.activeNetwork ?: return false
+            val activeNetwork = connectivityManager.getNetworkCapabilities(network) ?: return false
+
+            return when {
+                activeNetwork.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> true
+                activeNetwork.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> true
+                activeNetwork.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) -> true
+                else -> false
+            }
+        } else {
+            val networkInfo = connectivityManager.activeNetworkInfo
+            return networkInfo != null && networkInfo.isConnectedOrConnecting
+        }
+    }
 }
