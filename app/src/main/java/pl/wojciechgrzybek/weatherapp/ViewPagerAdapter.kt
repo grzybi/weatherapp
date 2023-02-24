@@ -8,15 +8,30 @@ class ViewPagerAdapter(fm: FragmentManager): FragmentPagerAdapter(fm) {
 
     private val COUNT = 4
 
+    private val firstFragment = FirstFragment()
+    private val secondFragment = SecondFragment()
+    private val thirdFragment = ThirdFragment()
+    private val setupFragment = SetupFragment()
+
     override fun getItem(position: Int): Fragment {
         return when (position) {
-            0 -> FirstFragment()
-            1 -> SecondFragment()
-            2 -> ThirdFragment()
-            3 -> SetupFragment()
-            else -> FirstFragment()
+            0 -> firstFragment
+            1 -> secondFragment
+            2 -> thirdFragment
+            3 -> setupFragment
+            else -> firstFragment
         }
     }
+
+//    override fun getItem(position: Int): Fragment {
+//        return when (position) {
+//            0 -> FirstFragment()
+//            1 -> SecondFragment()
+//            2 -> ThirdFragment()
+//            3 -> SetupFragment()
+//            else -> FirstFragment()
+//        }
+//    }
 
     override fun getCount(): Int {
         return COUNT
