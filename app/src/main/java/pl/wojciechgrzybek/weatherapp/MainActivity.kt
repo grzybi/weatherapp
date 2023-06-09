@@ -9,6 +9,7 @@ import android.widget.Button
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.viewpager.widget.ViewPager
+import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import pl.wojciechgrzybek.weatherapp.databinding.ActivityMainBinding
 import java.net.URL
@@ -18,12 +19,8 @@ import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Build
-import android.os.Bundle
-import android.util.Log
-import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
+import com.google.android.material.tabs.TabLayout
 import com.google.gson.Gson
-import pl.wojciechgrzybek.weatherapp.databinding.ActivityMainBinding
 import pl.wojciechgrzybek.weatherapp.model.WeatherModel
 import pl.wojciechgrzybek.weatherapp.service.WeatherService
 import retrofit2.*
@@ -49,21 +46,21 @@ class MainActivity : AppCompatActivity(), SetupFragment.SetupFragmentListener {
         setupViewPager()
 
 
-        val bottomNavigationView = findViewById<BottomNavigationView>(R.id.bottomNav)
-        bottomNavigationView.setOnNavigationItemSelectedListener { menuItem ->
-            when (menuItem.itemId) {
-                R.id.refresh -> {
-                    executorFirst("Lodz")
-                    true
-                }
-                else -> {
-                    executorFirst("Warsaw")
-                    true
-                }
-            }
-
-
-        }
+//        val bottomNavigationView = findViewById<BottomNavigationView>(R.id.bottomNav)
+//        bottomNavigationView.setOnNavigationItemSelectedListener { menuItem ->
+//            when (menuItem.itemId) {
+//                R.id.refresh -> {
+//                    executorFirst("Lodz")
+//                    true
+//                }
+//                else -> {
+//                    executorFirst("Warsaw")
+//                    true
+//                }
+//            }
+//
+//
+//        }
 
         var isNetworkAvailableMessage = ""
         isNetworkAvailableMessage = if (isNetworkAvailable(this@MainActivity))
@@ -124,18 +121,15 @@ class MainActivity : AppCompatActivity(), SetupFragment.SetupFragmentListener {
 
 
     private fun setupViewPager() {
-//        val viewPager = findViewById<ViewPager>(R.id.viewPager)
-//        val adapter = viewPager.adapter as ViewPagerAdapter
-//        val adapter = ViewPagerAdapter(supportFragmentManager)
-//        viewPager.adapter = adapter
-//        viewPager.adapter = adapter
-        val viewPager = binding.viewPager
-        viewPager.adapter = ViewPagerAdapter(supportFragmentManager)
-        val adapter = viewPager.adapter as ViewPagerAdapter
-        val fragment = adapter.getItem(3) as? SetupFragment
-        Log.d("fragm", fragment?.view.toString())
-        val elem = fragment?.view?.findViewById<Button>(R.id.button2)
-        Log.d("elem", elem.toString())
+        val adapter = ViewPagerAdapter(supportFragmentManager, lifecycle)
+        val viewPager = findViewById<ViewPager2>(R.id.viewPager)
+//        val tabLayout = findViewById<TabLayout>(R.id.tabl)
+
+        viewPager.adapter = adapter
+//        val fragment = adapter.getItem(3) as? SetupFragment
+//        Log.d("fragm", fragment?.view.toString())
+//        val elem = fragment?.view?.findViewById<Button>(R.id.button2)
+//        Log.d("elem", elem.toString())
 
         //        fragment?.listener = this
     }
@@ -188,7 +182,6 @@ class MainActivity : AppCompatActivity(), SetupFragment.SetupFragmentListener {
                     response: Response<WeatherModel>
                 ) {
                     if (response.isSuccessful) {
-//                        hideProgressDialog()
                         val weatherList: WeatherModel? = response.body()
 
                         val weatherResponseJsonString = Gson().toJson(weatherList)
