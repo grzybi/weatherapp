@@ -9,6 +9,7 @@ import android.widget.Button
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.viewpager.widget.ViewPager
+import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import pl.wojciechgrzybek.weatherapp.databinding.ActivityMainBinding
 import java.net.URL
@@ -18,12 +19,11 @@ import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Build
-import android.os.Bundle
-import android.util.Log
-import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresApi
+import com.google.android.material.tabs.TabLayout
+import com.google.android.material.tabs.TabLayoutMediator
 import com.google.gson.Gson
-import pl.wojciechgrzybek.weatherapp.databinding.ActivityMainBinding
 import pl.wojciechgrzybek.weatherapp.model.WeatherModel
 import pl.wojciechgrzybek.weatherapp.service.WeatherService
 import retrofit2.*
@@ -46,40 +46,39 @@ class MainActivity : AppCompatActivity(), SetupFragment.SetupFragmentListener {
         binding = ActivityMainBinding.inflate(layoutInflater)
         val view = binding.root
         setContentView(view)
+//
+//
+//        var isNetworkAvailableMessage = ""
+//        isNetworkAvailableMessage = if (isNetworkAvailable(this@MainActivity))
+//            "Network available"
+//        else
+//            "Network not available"
+//
+//        Toast.makeText(
+//            this@MainActivity,
+//            isNetworkAvailableMessage,
+//            Toast.LENGTH_SHORT
+//        ).show()
+//
+//        getWeather("Lodz")
+//
+    }
+
+    @RequiresApi(Build.VERSION_CODES.M)
+    override fun onStart() {
+        super.onStart()
         setupViewPager()
+        setupUI()
+        val isNetworkAvail = isNetworkAvailable(baseContext)
+//        if (isNetworkAvail) {
+//            requestPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) {
+//                is
+//            }
+//        }
 
-
-        val bottomNavigationView = findViewById<BottomNavigationView>(R.id.bottomNav)
-        bottomNavigationView.setOnNavigationItemSelectedListener { menuItem ->
-            when (menuItem.itemId) {
-                R.id.refresh -> {
-                    executorFirst("Lodz")
-                    true
-                }
-                else -> {
-                    executorFirst("Warsaw")
-                    true
-                }
-            }
-
-
-        }
-
-        var isNetworkAvailableMessage = ""
-        isNetworkAvailableMessage = if (isNetworkAvailable(this@MainActivity))
-            "Network available"
-        else
-            "Network not available"
-
-        Toast.makeText(
-            this@MainActivity,
-            isNetworkAvailableMessage,
-            Toast.LENGTH_SHORT
-        ).show()
-
-        getWeather("Lodz")
 
     }
+
 
     @SuppressLint("")
     fun executorFirst(city: String) {
@@ -114,7 +113,6 @@ class MainActivity : AppCompatActivity(), SetupFragment.SetupFragmentListener {
 //            Log.d("test executor", "true")
 
 
-
         }
         //api call
 
@@ -122,22 +120,30 @@ class MainActivity : AppCompatActivity(), SetupFragment.SetupFragmentListener {
     }
 
 
-
     private fun setupViewPager() {
-//        val viewPager = findViewById<ViewPager>(R.id.viewPager)
-//        val adapter = viewPager.adapter as ViewPagerAdapter
-//        val adapter = ViewPagerAdapter(supportFragmentManager)
-//        viewPager.adapter = adapter
-//        viewPager.adapter = adapter
-        val viewPager = binding.viewPager
-        viewPager.adapter = ViewPagerAdapter(supportFragmentManager)
-        val adapter = viewPager.adapter as ViewPagerAdapter
-        val fragment = adapter.getItem(3) as? SetupFragment
-        Log.d("fragm", fragment?.view.toString())
-        val elem = fragment?.view?.findViewById<Button>(R.id.button2)
-        Log.d("elem", elem.toString())
+        val adapter = ViewPagerAdapter(supportFragmentManager, lifecycle)
+        val viewPager = findViewById<ViewPager2>(R.id.viewPager)
+        val tabLayout = findViewById<TabLayout>(R.id.tabLayout)
 
-        //        fragment?.listener = this
+        viewPager.adapter = adapter
+        TabLayoutMediator(tabLayout, viewPager) { tab, position ->
+            when (position) {
+                0 -> tab.text = "Basic"
+                1 -> tab.text = "Extended"
+                2 -> tab.text = "Forecast"
+            }
+        }.attach()
+
+        viewPager.offscreenPageLimit = 2
+    }
+
+    private fun setupUI() {
+        val buttonCitySearch = binding.buttonCitySearch
+
+        buttonCitySearch.setOnClickListener {
+            val textInputCity = binding.city
+            Log.d("City to search ", textInputCity.text.toString())
+        }
     }
 
     override fun onButtonClicked() {
@@ -175,9 +181,11 @@ class MainActivity : AppCompatActivity(), SetupFragment.SetupFragmentListener {
                 .addConverterFactory(GsonConverterFactory.create())
                 .build()
 
-            val service: WeatherService = retrofit.create<WeatherService>(WeatherService::class.java)
+            val service: WeatherService =
+                retrofit.create<WeatherService>(WeatherService::class.java)
 
-            val listCall: Call<WeatherModel> = service.getWeather(null,  null, "Lodz", "metric", appId)
+            val listCall: Call<WeatherModel> =
+                service.getWeather(null, null, "Lodz", "metric", appId)
 
             Log.d("response", listCall.toString())
 
@@ -188,7 +196,6 @@ class MainActivity : AppCompatActivity(), SetupFragment.SetupFragmentListener {
                     response: Response<WeatherModel>
                 ) {
                     if (response.isSuccessful) {
-//                        hideProgressDialog()
                         val weatherList: WeatherModel? = response.body()
 
                         val weatherResponseJsonString = Gson().toJson(weatherList)
