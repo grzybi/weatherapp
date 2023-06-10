@@ -19,6 +19,8 @@ import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Build
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresApi
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
 import com.google.gson.Gson
@@ -44,23 +46,39 @@ class MainActivity : AppCompatActivity(), SetupFragment.SetupFragmentListener {
         binding = ActivityMainBinding.inflate(layoutInflater)
         val view = binding.root
         setContentView(view)
+//
+//
+//        var isNetworkAvailableMessage = ""
+//        isNetworkAvailableMessage = if (isNetworkAvailable(this@MainActivity))
+//            "Network available"
+//        else
+//            "Network not available"
+//
+//        Toast.makeText(
+//            this@MainActivity,
+//            isNetworkAvailableMessage,
+//            Toast.LENGTH_SHORT
+//        ).show()
+//
+//        getWeather("Lodz")
+//
+    }
+
+    @RequiresApi(Build.VERSION_CODES.M)
+    override fun onStart() {
+        super.onStart()
         setupViewPager()
-        
-        var isNetworkAvailableMessage = ""
-        isNetworkAvailableMessage = if (isNetworkAvailable(this@MainActivity))
-            "Network available"
-        else
-            "Network not available"
+        setupUI()
+        val isNetworkAvail = isNetworkAvailable(baseContext)
+//        if (isNetworkAvail) {
+//            requestPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) {
+//                is
+//            }
+//        }
 
-        Toast.makeText(
-            this@MainActivity,
-            isNetworkAvailableMessage,
-            Toast.LENGTH_SHORT
-        ).show()
-
-        getWeather("Lodz")
 
     }
+
 
     @SuppressLint("")
     fun executorFirst(city: String) {
@@ -117,6 +135,15 @@ class MainActivity : AppCompatActivity(), SetupFragment.SetupFragmentListener {
         }.attach()
 
         viewPager.offscreenPageLimit = 2
+    }
+
+    private fun setupUI() {
+        val buttonCitySearch = binding.buttonCitySearch
+
+        buttonCitySearch.setOnClickListener {
+            val textInputCity = binding.city
+            Log.d("City to search ", textInputCity.text.toString())
+        }
     }
 
     override fun onButtonClicked() {
