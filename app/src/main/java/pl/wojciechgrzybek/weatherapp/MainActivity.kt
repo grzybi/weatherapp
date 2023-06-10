@@ -20,6 +20,7 @@ import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Build
 import com.google.android.material.tabs.TabLayout
+import com.google.android.material.tabs.TabLayoutMediator
 import com.google.gson.Gson
 import pl.wojciechgrzybek.weatherapp.model.WeatherModel
 import pl.wojciechgrzybek.weatherapp.service.WeatherService
@@ -44,24 +45,7 @@ class MainActivity : AppCompatActivity(), SetupFragment.SetupFragmentListener {
         val view = binding.root
         setContentView(view)
         setupViewPager()
-
-
-//        val bottomNavigationView = findViewById<BottomNavigationView>(R.id.bottomNav)
-//        bottomNavigationView.setOnNavigationItemSelectedListener { menuItem ->
-//            when (menuItem.itemId) {
-//                R.id.refresh -> {
-//                    executorFirst("Lodz")
-//                    true
-//                }
-//                else -> {
-//                    executorFirst("Warsaw")
-//                    true
-//                }
-//            }
-//
-//
-//        }
-
+        
         var isNetworkAvailableMessage = ""
         isNetworkAvailableMessage = if (isNetworkAvailable(this@MainActivity))
             "Network available"
@@ -111,7 +95,6 @@ class MainActivity : AppCompatActivity(), SetupFragment.SetupFragmentListener {
 //            Log.d("test executor", "true")
 
 
-
         }
         //api call
 
@@ -119,19 +102,21 @@ class MainActivity : AppCompatActivity(), SetupFragment.SetupFragmentListener {
     }
 
 
-
     private fun setupViewPager() {
         val adapter = ViewPagerAdapter(supportFragmentManager, lifecycle)
         val viewPager = findViewById<ViewPager2>(R.id.viewPager)
-//        val tabLayout = findViewById<TabLayout>(R.id.tabl)
+        val tabLayout = findViewById<TabLayout>(R.id.tabLayout)
 
         viewPager.adapter = adapter
-//        val fragment = adapter.getItem(3) as? SetupFragment
-//        Log.d("fragm", fragment?.view.toString())
-//        val elem = fragment?.view?.findViewById<Button>(R.id.button2)
-//        Log.d("elem", elem.toString())
+        TabLayoutMediator(tabLayout, viewPager) { tab, position ->
+            when (position) {
+                0 -> tab.text = "Basic"
+                1 -> tab.text = "Extended"
+                2 -> tab.text = "Forecast"
+            }
+        }.attach()
 
-        //        fragment?.listener = this
+        viewPager.offscreenPageLimit = 2
     }
 
     override fun onButtonClicked() {
@@ -169,9 +154,11 @@ class MainActivity : AppCompatActivity(), SetupFragment.SetupFragmentListener {
                 .addConverterFactory(GsonConverterFactory.create())
                 .build()
 
-            val service: WeatherService = retrofit.create<WeatherService>(WeatherService::class.java)
+            val service: WeatherService =
+                retrofit.create<WeatherService>(WeatherService::class.java)
 
-            val listCall: Call<WeatherModel> = service.getWeather(null,  null, "Lodz", "metric", appId)
+            val listCall: Call<WeatherModel> =
+                service.getWeather(null, null, "Lodz", "metric", appId)
 
             Log.d("response", listCall.toString())
 
