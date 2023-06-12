@@ -307,13 +307,18 @@ class MainActivity : AppCompatActivity(), SetupFragment.SetupFragmentListener {
                         Log.d("__RESPONSE__WEATHER___", response.body().toString())
 //                        firstFragment.cityLabel.text = response.body().toString()
                         findViewById<TextView>(R.id.lat_label).text = response.body().toString()
-                        findViewById<TextView>(R.id.city_label).text = response.body()!!.name.toString()
+                        findViewById<TextView>(R.id.city_label).text =
+                            response.body()!!.name.toString()
 
-                        findViewById<TextView>(R.id.lon_label).text = response.body()!!.weather[0].main.toString()
-                        findViewById<ImageView>(R.id.imgMain).setImageResource(R.drawable.ic_sun)
+                        val weatherMain = response.body()!!.weather[0].main.toString()
+                        findViewById<TextView>(R.id.lon_label).text = weatherMain
+                        findViewById<ImageView>(R.id.imgMain).setImageResource(
+                            getWeatherIcon(
+                                weatherMain
+                            )
+                        )
                     } else {
-
-
+                        
                     }
                 }
 
@@ -360,10 +365,17 @@ class MainActivity : AppCompatActivity(), SetupFragment.SetupFragmentListener {
         )
     }
 
-//    private fun getWeatherIcon(weatherGroup) {
-//
-//    }
-
+    private fun getWeatherIcon(weatherMain: String): Int {
+        return when (weatherMain) {
+            "Clear" -> R.drawable.ic_sun
+            "Clouds" -> R.drawable.ic_clouds
+            "Drizzle" -> R.drawable.ic_cloud_drizzle
+            "Rain" -> R.drawable.ic_cloud_rain_heavy
+            "Snow" -> R.drawable.ic_cloud_snow
+            "Thunderstorm" -> R.drawable.ic_cloud_lightning
+            else -> R.drawable.ic_cloud_haze2
+        }
+    }
 
     fun onFirstFragmentCreated() {
         Log.d("test", "first fragmentCreated")
