@@ -36,6 +36,7 @@ import pl.wojciechgrzybek.weatherapp.model.WeatherModel
 import pl.wojciechgrzybek.weatherapp.service.WeatherService
 import retrofit2.*
 import retrofit2.converter.gson.GsonConverterFactory
+import retrofit2.http.Query
 import java.util.*
 
 class MainActivity : AppCompatActivity(), SetupFragment.SetupFragmentListener {
@@ -224,6 +225,7 @@ class MainActivity : AppCompatActivity(), SetupFragment.SetupFragmentListener {
         buttonCitySearch.setOnClickListener {
             val textInputCity = binding.city
             Log.d("City to search ", textInputCity.text.toString())
+            getWeather(textInputCity.text.toString())
         }
     }
 
@@ -256,65 +258,87 @@ class MainActivity : AppCompatActivity(), SetupFragment.SetupFragmentListener {
     }
 
     private fun getWeather(city: String?) {
-        if (isNetworkAvailable(this@MainActivity) && city != "") {
-            val retrofit: Retrofit = Retrofit.Builder()
-                .baseUrl(baseUrl)
-                .addConverterFactory(GsonConverterFactory.create())
-                .build()
+        if (city != null) {
+            getCurrentWeather(city)
+            //getForecastWeather(city)
+        }
+    }
 
-            val service: WeatherService =
-                retrofit.create<WeatherService>(WeatherService::class.java)
+    private fun getCurrentWeather(city: String) {
 
-            val listCall: Call<WeatherModel> =
-                service.getWeather(null, null, "Lodz", "metric", appId)
 
-            Log.d("response", listCall.toString())
+        val retrofit: Retrofit = Retrofit.Builder()
+            .baseUrl(baseUrl)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
 
-            listCall.enqueue(object : Callback<WeatherModel> {
-                @SuppressLint("SetTextI18n", "CommitPrefEdits")
+        val service: WeatherService =
+            retrofit.create<WeatherService>(WeatherService::class.java)
+
+        val listCall: Call<WeatherModel> =
+            service.getWeather(null, null, city, "metric", appId)
+
+
+
+        listCall.enqueue(
+            object : Callback<WeatherModel> {
                 override fun onResponse(
                     call: Call<WeatherModel>,
                     response: Response<WeatherModel>
                 ) {
                     if (response.isSuccessful) {
-                        val weatherList: WeatherModel? = response.body()
-
-                        val weatherResponseJsonString = Gson().toJson(weatherList)
-//                        val editor = mSharedPreferences.edit()
-//                        editor.putString(weatherData, weatherResponseJsonString)
-//                        editor.apply()
-//                        setupUI()
-
-                        Log.i("Response Result", "$weatherList")
-
-                        for (i in weatherList?.weather?.indices!!) {
-                            Log.d("base", weatherList?.base.toString())
-                        }
+                        Log.d("____RESPONSE___", response.body().toString())
                     } else {
-                        Toast.makeText(
-                            this@MainActivity,
-                            "There was an error with your request",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                        when (response.code()) {
-                            400 -> {
-                                Log.e("Error 400", "Bad Request")
-                            }
-                            404 -> {
-                                Log.e("Error 404", "Not Found")
-                            }
-                            else -> {
-                                Log.e("Error", "Generic Error")
-                            }
-                        }
+
+
                     }
                 }
 
                 override fun onFailure(call: Call<WeatherModel>, t: Throwable) {
-//                    hideProgressDialog()
+
                     Log.e("Errorrrrr", t.message.toString())
                 }
-            })
-        }
+            }
+        )
     }
 }
+
+//                @SuppressLint("SetTextI18n", "CommitPrefEdits")
+//                    if (response.isSuccessful) {
+//                        val weatherList: WeatherModel? = response.body()
+//
+//                        val weatherResponseJsonString = Gson().toJson(weatherList)
+////                        val editor = mSharedPreferences.edit()
+////                        editor.putString(weatherData, weatherResponseJsonString)
+////                        editor.apply()
+////                        setupUI()
+//
+//                        Log.i("Response Result", "$weatherList")
+//
+//                        for (i in weatherList?.weather?.indices!!) {
+//                            Log.d("base", weatherList?.base.toString())
+//                        }
+//                    } else {
+//                        Toast.makeText(
+//                            this@MainActivity,
+//                            "There was an error with your request",
+//                            Toast.LENGTH_SHORT
+//                        ).show()
+//                        when (response.code()) {
+//                            400 -> {
+//                                Log.e("Error 400", "Bad Request")
+//                            }
+//                            404 -> {
+//                                Log.e("Error 404", "Not Found")
+//                            }
+//                            else -> {
+//                                Log.e("Error", "Generic Error")
+//                            }
+//                        }
+//                    }
+//                }
+
+
+//            })
+//        }
+
