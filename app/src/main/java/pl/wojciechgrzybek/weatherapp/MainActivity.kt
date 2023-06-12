@@ -12,6 +12,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.viewpager2.widget.ViewPager2
 import pl.wojciechgrzybek.weatherapp.databinding.ActivityMainBinding
+import pl.wojciechgrzybek.weatherapp.databinding.FirstFragmentBinding
 import java.net.URL
 import java.util.concurrent.Executor
 import java.util.concurrent.Executors
@@ -24,6 +25,7 @@ import android.location.LocationManager
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Build
+import android.widget.TextView
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
@@ -45,6 +47,7 @@ class MainActivity : AppCompatActivity(), SetupFragment.SetupFragmentListener {
     private val baseUrl: String = "https://api.openweathermap.org/data/"
 
     private lateinit var binding: ActivityMainBinding
+    private lateinit var firstFragment: FirstFragment
     private lateinit var requestPermissionLauncher: ActivityResultLauncher<String>
     private lateinit var locationManager: LocationManager
     private var currentLocation: Location? = null
@@ -56,9 +59,14 @@ class MainActivity : AppCompatActivity(), SetupFragment.SetupFragmentListener {
     override fun onCreate(savedInstanceState: Bundle?) {
         Log.d("hello", "world")
         super.onCreate(savedInstanceState)
+//        firstFragment = supportFragmentManager.findFragmentById(R.id.FirstFragment) as FirstFragment
+
         binding = ActivityMainBinding.inflate(layoutInflater)
         val view = binding.root
+
         setContentView(view)
+
+
     }
 
     @RequiresApi(Build.VERSION_CODES.M)
@@ -128,19 +136,30 @@ class MainActivity : AppCompatActivity(), SetupFragment.SetupFragmentListener {
                     ACCESS_COARSE_LOCATION
                 ) != PackageManager.PERMISSION_GRANTED
             ) {
+                Toast.makeText(
+                    this@MainActivity,
+                    "no access",
+                    Toast.LENGTH_LONG
+                ).show()
                 return
+            } else {
+//                Toast.makeText(
+//                    this@MainActivity,
+//                    "Granted",
+//                    Toast.LENGTH_SHORT
+//                ).show()
+                locationManager.requestLocationUpdates(
+                    LocationManager.NETWORK_PROVIDER,
+                    5000,
+                    0F,
+                    locationListener
+                )
             }
-            locationManager.requestLocationUpdates(
-                LocationManager.NETWORK_PROVIDER,
-                5000,
-                0F,
-                locationListener
-            )
         } else {
             Toast.makeText(
                 this@MainActivity,
-                "Error: Network provider",
-                Toast.LENGTH_SHORT
+                "No acccess to localization. Please check your system settings.",
+                Toast.LENGTH_LONG
             ).show()
             return
         }
@@ -157,7 +176,7 @@ class MainActivity : AppCompatActivity(), SetupFragment.SetupFragmentListener {
         if (address != null && address.size > 0) {
             val city = address[0].locality
             Log.d("LOCATION", city)
-            Toast.makeText(this@MainActivity, city.toString(), Toast.LENGTH_LONG).show()
+            //Toast.makeText(this@MainActivity, city.toString(), Toast.LENGTH_LONG).show()
             // TODO get weather from this point
         }
     }
@@ -288,6 +307,9 @@ class MainActivity : AppCompatActivity(), SetupFragment.SetupFragmentListener {
                 ) {
                     if (response.isSuccessful) {
                         Log.d("____RESPONSE___", response.body().toString())
+                        //firstFragment.cityLabel.text = response.body().toString()
+                        findViewById<TextView>(R.id.lat_label).text = response.body().toString()
+                        findViewById<TextView>(R.id.city_label).text = response.body()!!.name.toString()
                     } else {
 
 
@@ -300,6 +322,10 @@ class MainActivity : AppCompatActivity(), SetupFragment.SetupFragmentListener {
                 }
             }
         )
+    }
+
+    fun onFirstFragmentCreated() {
+        Log.d("test", "first fragmentCreated")
     }
 }
 

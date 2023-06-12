@@ -9,26 +9,36 @@ import android.widget.TextView
 import androidx.fragment.app.Fragment
 import pl.wojciechgrzybek.weatherapp.databinding.FirstFragmentBinding
 
-class FirstFragment : Fragment() {
+class FirstFragment : Fragment(R.layout.first_fragment) {
 
     private lateinit var binding: FirstFragmentBinding
+
+    lateinit var cityLabel: TextView
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View {
-        binding = FirstFragmentBinding.inflate(layoutInflater)
-        return binding.root
+    ): View? {
+        val view = inflater.inflate(R.layout.first_fragment, container, false)
+        cityLabel = view.findViewById(R.id.city_label)
+        return view
+//        binding = FirstFragmentBinding.inflate(layoutInflater)
+//        return binding.root
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
+//    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+//        super.onViewCreated(view, savedInstanceState)
+//
+//        setupData()
+//        val textView = getView()?.findViewById<TextView>(R.id.headerLabel)
+//        textView?.text = "test"
+//        textView?.setOnClickListener{testClick()}
+//    }
 
-        setupData()
-        val textView = getView()?.findViewById<TextView>(R.id.headerLabel)
-        textView?.text = "test"
-        textView?.setOnClickListener{testClick()}
+    override fun onStart() {
+        super.onStart()
+        (activity as MainActivity).onFirstFragmentCreated()
     }
 
     private fun testClick() {
