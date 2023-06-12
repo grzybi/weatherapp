@@ -1,6 +1,6 @@
 package pl.wojciechgrzybek.weatherapp.model
 
-data class WeatherModel (
+data class WeatherModel(
     val coord: Coord,
     val weather: List<Weather>,
     val base: String,
@@ -8,11 +8,12 @@ data class WeatherModel (
     val visibility: Int,
     val wind: Wind,
     val clouds: Clouds,
-//    rain, snow
+    val rain: Rain,
+    val snow: Snow,
     val dt: Int,
     val sys: Sys,
     val timezone: Int,
-//    val id: String,
-    val name: String
-// cod
-):java.io.Serializable
+    val id: String,
+    val name: String,
+    val cod: String
+) : java.io.Serializable
