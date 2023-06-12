@@ -9,17 +9,23 @@ import android.widget.TextView
 import androidx.fragment.app.Fragment
 import pl.wojciechgrzybek.weatherapp.databinding.FirstFragmentBinding
 
-class FirstFragment : Fragment() {
+class FirstFragment : Fragment(R.layout.first_fragment) {
 
     private lateinit var binding: FirstFragmentBinding
+
+    lateinit var cityLabel: TextView
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View {
+    ): View? {
+        val view = inflater.inflate(R.layout.first_fragment, container, false)
         binding = FirstFragmentBinding.inflate(layoutInflater)
-        return binding.root
+        cityLabel = view.findViewById(R.id.city_label)
+        return view
+
+//        return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -31,12 +37,18 @@ class FirstFragment : Fragment() {
         textView?.setOnClickListener{testClick()}
     }
 
+    override fun onStart() {
+        super.onStart()
+        (activity as MainActivity).onFirstFragmentCreated()
+//                setupData()
+    }
+
     private fun testClick() {
         Log.d("test", "test")
     }
 
     private fun setupData() {
-//        binding.txtMain.text = getString(R.string.first_fragment_label)
+//        binding.cityLabel.text = getString(R.string.first_fragment_label)
 //        binding.imgMain.setImageResource(R.mipmap.ic_launcher)
     }
 }

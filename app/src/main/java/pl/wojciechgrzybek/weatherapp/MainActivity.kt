@@ -12,6 +12,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.viewpager2.widget.ViewPager2
 import pl.wojciechgrzybek.weatherapp.databinding.ActivityMainBinding
+import pl.wojciechgrzybek.weatherapp.databinding.FirstFragmentBinding
 import java.net.URL
 import java.util.concurrent.Executor
 import java.util.concurrent.Executors
@@ -24,6 +25,7 @@ import android.location.LocationManager
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Build
+import android.widget.TextView
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
@@ -32,7 +34,9 @@ import androidx.core.content.ContextCompat
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
 import com.google.gson.Gson
+import pl.wojciechgrzybek.weatherapp.model.ForecastModel
 import pl.wojciechgrzybek.weatherapp.model.WeatherModel
+import pl.wojciechgrzybek.weatherapp.service.ForecastService
 import pl.wojciechgrzybek.weatherapp.service.WeatherService
 import retrofit2.*
 import retrofit2.converter.gson.GsonConverterFactory
@@ -44,6 +48,7 @@ class MainActivity : AppCompatActivity(), SetupFragment.SetupFragmentListener {
     private val baseUrl: String = "https://api.openweathermap.org/data/"
 
     private lateinit var binding: ActivityMainBinding
+    private lateinit var firstFragment: FirstFragment
     private lateinit var requestPermissionLauncher: ActivityResultLauncher<String>
     private lateinit var locationManager: LocationManager
     private var currentLocation: Location? = null
@@ -55,9 +60,14 @@ class MainActivity : AppCompatActivity(), SetupFragment.SetupFragmentListener {
     override fun onCreate(savedInstanceState: Bundle?) {
         Log.d("hello", "world")
         super.onCreate(savedInstanceState)
+
         binding = ActivityMainBinding.inflate(layoutInflater)
         val view = binding.root
+//        firstFragment = supportFragmentManager.findFragmentById(R.id.FirstFragment) as FirstFragment
+
         setContentView(view)
+
+
     }
 
     @RequiresApi(Build.VERSION_CODES.M)
@@ -127,19 +137,30 @@ class MainActivity : AppCompatActivity(), SetupFragment.SetupFragmentListener {
                     ACCESS_COARSE_LOCATION
                 ) != PackageManager.PERMISSION_GRANTED
             ) {
+                Toast.makeText(
+                    this@MainActivity,
+                    "no access",
+                    Toast.LENGTH_LONG
+                ).show()
                 return
+            } else {
+//                Toast.makeText(
+//                    this@MainActivity,
+//                    "Granted",
+//                    Toast.LENGTH_SHORT
+//                ).show()
+                locationManager.requestLocationUpdates(
+                    LocationManager.NETWORK_PROVIDER,
+                    5000,
+                    0F,
+                    locationListener
+                )
             }
-            locationManager.requestLocationUpdates(
-                LocationManager.NETWORK_PROVIDER,
-                5000,
-                0F,
-                locationListener
-            )
         } else {
             Toast.makeText(
                 this@MainActivity,
-                "Error: Network provider",
-                Toast.LENGTH_SHORT
+                "No acccess to localization. Please check your system settings.",
+                Toast.LENGTH_LONG
             ).show()
             return
         }
@@ -156,7 +177,7 @@ class MainActivity : AppCompatActivity(), SetupFragment.SetupFragmentListener {
         if (address != null && address.size > 0) {
             val city = address[0].locality
             Log.d("LOCATION", city)
-            Toast.makeText(this@MainActivity, city.toString(), Toast.LENGTH_LONG).show()
+            //Toast.makeText(this@MainActivity, city.toString(), Toast.LENGTH_LONG).show()
             // TODO get weather from this point
         }
     }
@@ -224,6 +245,7 @@ class MainActivity : AppCompatActivity(), SetupFragment.SetupFragmentListener {
         buttonCitySearch.setOnClickListener {
             val textInputCity = binding.city
             Log.d("City to search ", textInputCity.text.toString())
+            getWeather(textInputCity.text.toString())
         }
     }
 
@@ -256,65 +278,126 @@ class MainActivity : AppCompatActivity(), SetupFragment.SetupFragmentListener {
     }
 
     private fun getWeather(city: String?) {
-        if (isNetworkAvailable(this@MainActivity) && city != "") {
-            val retrofit: Retrofit = Retrofit.Builder()
-                .baseUrl(baseUrl)
-                .addConverterFactory(GsonConverterFactory.create())
-                .build()
+        if (city != null) {
+            getCurrentWeather(city)
+            getForecastWeather(city)
+        }
+    }
 
-            val service: WeatherService =
-                retrofit.create<WeatherService>(WeatherService::class.java)
+    private fun getCurrentWeather(city: String) {
+        val retrofit: Retrofit = Retrofit.Builder()
+            .baseUrl(baseUrl)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
 
-            val listCall: Call<WeatherModel> =
-                service.getWeather(null, null, "Lodz", "metric", appId)
+        val service: WeatherService =
+            retrofit.create<WeatherService>(WeatherService::class.java)
 
-            Log.d("response", listCall.toString())
+        val listCall: Call<WeatherModel> =
+            service.getWeather(null, null, city, "metric", appId)
 
-            listCall.enqueue(object : Callback<WeatherModel> {
-                @SuppressLint("SetTextI18n", "CommitPrefEdits")
+        listCall.enqueue(
+            object : Callback<WeatherModel> {
                 override fun onResponse(
                     call: Call<WeatherModel>,
                     response: Response<WeatherModel>
                 ) {
                     if (response.isSuccessful) {
-                        val weatherList: WeatherModel? = response.body()
-
-                        val weatherResponseJsonString = Gson().toJson(weatherList)
-//                        val editor = mSharedPreferences.edit()
-//                        editor.putString(weatherData, weatherResponseJsonString)
-//                        editor.apply()
-//                        setupUI()
-
-                        Log.i("Response Result", "$weatherList")
-
-                        for (i in weatherList?.weather?.indices!!) {
-                            Log.d("base", weatherList?.base.toString())
-                        }
+                        Log.d("__RESPONSE__WEATHER___", response.body().toString())
+//                        firstFragment.cityLabel.text = response.body().toString()
+                        findViewById<TextView>(R.id.lat_label).text = response.body().toString()
+                        findViewById<TextView>(R.id.city_label).text = response.body()!!.name.toString()
                     } else {
-                        Toast.makeText(
-                            this@MainActivity,
-                            "There was an error with your request",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                        when (response.code()) {
-                            400 -> {
-                                Log.e("Error 400", "Bad Request")
-                            }
-                            404 -> {
-                                Log.e("Error 404", "Not Found")
-                            }
-                            else -> {
-                                Log.e("Error", "Generic Error")
-                            }
-                        }
+
+
                     }
                 }
 
                 override fun onFailure(call: Call<WeatherModel>, t: Throwable) {
-//                    hideProgressDialog()
                     Log.e("Errorrrrr", t.message.toString())
                 }
-            })
-        }
+            }
+        )
+    }
+
+    private fun getForecastWeather(city: String) {
+        val retrofit: Retrofit = Retrofit.Builder()
+            .baseUrl(baseUrl)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+
+        val service: ForecastService =
+            retrofit.create<ForecastService>(ForecastService::class.java)
+
+        val listCall: Call<ForecastModel> =
+            service.getForecast(null, null, city, "metric", appId, cnt = 10)
+
+        listCall.enqueue(
+            object : Callback<ForecastModel> {
+                override fun onResponse(
+                    call: Call<ForecastModel>,
+                    response: Response<ForecastModel>
+                ) {
+                    if (response.isSuccessful) {
+                        Log.d("__RESPONSE__FORECAST__", response.body().toString())
+//                        firstFragment.cityLabel.text = response.body().toString()
+//                        findViewById<TextView>(R.id.lat_label).text = response.body().toString()
+//                        findViewById<TextView>(R.id.city_label).text = response.body()!!.name.toString()
+                    } else {
+
+
+                    }
+                }
+
+                override fun onFailure(call: Call<ForecastModel>, t: Throwable) {
+                    Log.e("Errorrrrr", t.message.toString())
+                }
+            }
+        )
+    }
+
+
+    fun onFirstFragmentCreated() {
+        Log.d("test", "first fragmentCreated")
     }
 }
+
+//                @SuppressLint("SetTextI18n", "CommitPrefEdits")
+//                    if (response.isSuccessful) {
+//                        val weatherList: WeatherModel? = response.body()
+//
+//                        val weatherResponseJsonString = Gson().toJson(weatherList)
+////                        val editor = mSharedPreferences.edit()
+////                        editor.putString(weatherData, weatherResponseJsonString)
+////                        editor.apply()
+////                        setupUI()
+//
+//                        Log.i("Response Result", "$weatherList")
+//
+//                        for (i in weatherList?.weather?.indices!!) {
+//                            Log.d("base", weatherList?.base.toString())
+//                        }
+//                    } else {
+//                        Toast.makeText(
+//                            this@MainActivity,
+//                            "There was an error with your request",
+//                            Toast.LENGTH_SHORT
+//                        ).show()
+//                        when (response.code()) {
+//                            400 -> {
+//                                Log.e("Error 400", "Bad Request")
+//                            }
+//                            404 -> {
+//                                Log.e("Error 404", "Not Found")
+//                            }
+//                            else -> {
+//                                Log.e("Error", "Generic Error")
+//                            }
+//                        }
+//                    }
+//                }
+
+
+//            })
+//        }
+
