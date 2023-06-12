@@ -34,11 +34,12 @@ import androidx.core.content.ContextCompat
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
 import com.google.gson.Gson
+import pl.wojciechgrzybek.weatherapp.model.ForecastModel
 import pl.wojciechgrzybek.weatherapp.model.WeatherModel
+import pl.wojciechgrzybek.weatherapp.service.ForecastService
 import pl.wojciechgrzybek.weatherapp.service.WeatherService
 import retrofit2.*
 import retrofit2.converter.gson.GsonConverterFactory
-import retrofit2.http.Query
 import java.util.*
 
 class MainActivity : AppCompatActivity(), SetupFragment.SetupFragmentListener {
@@ -59,10 +60,10 @@ class MainActivity : AppCompatActivity(), SetupFragment.SetupFragmentListener {
     override fun onCreate(savedInstanceState: Bundle?) {
         Log.d("hello", "world")
         super.onCreate(savedInstanceState)
-//        firstFragment = supportFragmentManager.findFragmentById(R.id.FirstFragment) as FirstFragment
 
         binding = ActivityMainBinding.inflate(layoutInflater)
         val view = binding.root
+//        firstFragment = supportFragmentManager.findFragmentById(R.id.FirstFragment) as FirstFragment
 
         setContentView(view)
 
@@ -279,13 +280,11 @@ class MainActivity : AppCompatActivity(), SetupFragment.SetupFragmentListener {
     private fun getWeather(city: String?) {
         if (city != null) {
             getCurrentWeather(city)
-            //getForecastWeather(city)
+            getForecastWeather(city)
         }
     }
 
     private fun getCurrentWeather(city: String) {
-
-
         val retrofit: Retrofit = Retrofit.Builder()
             .baseUrl(baseUrl)
             .addConverterFactory(GsonConverterFactory.create())
@@ -297,8 +296,6 @@ class MainActivity : AppCompatActivity(), SetupFragment.SetupFragmentListener {
         val listCall: Call<WeatherModel> =
             service.getWeather(null, null, city, "metric", appId)
 
-
-
         listCall.enqueue(
             object : Callback<WeatherModel> {
                 override fun onResponse(
@@ -306,8 +303,8 @@ class MainActivity : AppCompatActivity(), SetupFragment.SetupFragmentListener {
                     response: Response<WeatherModel>
                 ) {
                     if (response.isSuccessful) {
-                        Log.d("____RESPONSE___", response.body().toString())
-                        //firstFragment.cityLabel.text = response.body().toString()
+                        Log.d("__RESPONSE__WEATHER___", response.body().toString())
+//                        firstFragment.cityLabel.text = response.body().toString()
                         findViewById<TextView>(R.id.lat_label).text = response.body().toString()
                         findViewById<TextView>(R.id.city_label).text = response.body()!!.name.toString()
                     } else {
@@ -317,12 +314,48 @@ class MainActivity : AppCompatActivity(), SetupFragment.SetupFragmentListener {
                 }
 
                 override fun onFailure(call: Call<WeatherModel>, t: Throwable) {
-
                     Log.e("Errorrrrr", t.message.toString())
                 }
             }
         )
     }
+
+    private fun getForecastWeather(city: String) {
+        val retrofit: Retrofit = Retrofit.Builder()
+            .baseUrl(baseUrl)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+
+        val service: ForecastService =
+            retrofit.create<ForecastService>(ForecastService::class.java)
+
+        val listCall: Call<ForecastModel> =
+            service.getForecast(null, null, city, "metric", appId, cnt = 10)
+
+        listCall.enqueue(
+            object : Callback<ForecastModel> {
+                override fun onResponse(
+                    call: Call<ForecastModel>,
+                    response: Response<ForecastModel>
+                ) {
+                    if (response.isSuccessful) {
+                        Log.d("__RESPONSE__FORECAST__", response.body().toString())
+//                        firstFragment.cityLabel.text = response.body().toString()
+//                        findViewById<TextView>(R.id.lat_label).text = response.body().toString()
+//                        findViewById<TextView>(R.id.city_label).text = response.body()!!.name.toString()
+                    } else {
+
+
+                    }
+                }
+
+                override fun onFailure(call: Call<ForecastModel>, t: Throwable) {
+                    Log.e("Errorrrrr", t.message.toString())
+                }
+            }
+        )
+    }
+
 
     fun onFirstFragmentCreated() {
         Log.d("test", "first fragmentCreated")

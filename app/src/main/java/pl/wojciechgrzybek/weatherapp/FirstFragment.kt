@@ -21,24 +21,26 @@ class FirstFragment : Fragment(R.layout.first_fragment) {
         savedInstanceState: Bundle?
     ): View? {
         val view = inflater.inflate(R.layout.first_fragment, container, false)
+        binding = FirstFragmentBinding.inflate(layoutInflater)
         cityLabel = view.findViewById(R.id.city_label)
         return view
-//        binding = FirstFragmentBinding.inflate(layoutInflater)
+
 //        return binding.root
     }
 
-//    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-//        super.onViewCreated(view, savedInstanceState)
-//
-//        setupData()
-//        val textView = getView()?.findViewById<TextView>(R.id.headerLabel)
-//        textView?.text = "test"
-//        textView?.setOnClickListener{testClick()}
-//    }
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        setupData()
+        val textView = getView()?.findViewById<TextView>(R.id.headerLabel)
+        textView?.text = "test"
+        textView?.setOnClickListener{testClick()}
+    }
 
     override fun onStart() {
         super.onStart()
         (activity as MainActivity).onFirstFragmentCreated()
+//                setupData()
     }
 
     private fun testClick() {
@@ -46,7 +48,7 @@ class FirstFragment : Fragment(R.layout.first_fragment) {
     }
 
     private fun setupData() {
-//        binding.txtMain.text = getString(R.string.first_fragment_label)
+//        binding.cityLabel.text = getString(R.string.first_fragment_label)
 //        binding.imgMain.setImageResource(R.mipmap.ic_launcher)
     }
 }
