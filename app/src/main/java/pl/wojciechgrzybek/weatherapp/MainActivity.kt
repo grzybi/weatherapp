@@ -1,5 +1,7 @@
 package pl.wojciechgrzybek.weatherapp
 
+import android.Manifest
+import android.Manifest.permission.ACCESS_COARSE_LOCATION
 import android.annotation.SuppressLint
 import android.os.Bundle
 import android.os.Handler
@@ -8,19 +10,25 @@ import android.util.Log
 import android.widget.Button
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.viewpager.widget.ViewPager
 import androidx.viewpager2.widget.ViewPager2
-import com.google.android.material.bottomnavigation.BottomNavigationView
 import pl.wojciechgrzybek.weatherapp.databinding.ActivityMainBinding
 import java.net.URL
 import java.util.concurrent.Executor
 import java.util.concurrent.Executors
 import android.content.Context
+import android.content.pm.PackageManager
+import android.location.Geocoder
+import android.location.Location
+import android.location.LocationListener
+import android.location.LocationManager
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Build
+import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
 import com.google.gson.Gson
@@ -28,6 +36,7 @@ import pl.wojciechgrzybek.weatherapp.model.WeatherModel
 import pl.wojciechgrzybek.weatherapp.service.WeatherService
 import retrofit2.*
 import retrofit2.converter.gson.GsonConverterFactory
+import java.util.*
 
 class MainActivity : AppCompatActivity(), SetupFragment.SetupFragmentListener {
 
@@ -35,6 +44,9 @@ class MainActivity : AppCompatActivity(), SetupFragment.SetupFragmentListener {
     private val baseUrl: String = "https://api.openweathermap.org/data/"
 
     private lateinit var binding: ActivityMainBinding
+    private lateinit var requestPermissionLauncher: ActivityResultLauncher<String>
+    private lateinit var locationManager: LocationManager
+    private var currentLocation: Location? = null
 
     private val handler = Handler(Looper.getMainLooper())
     private val executor: Executor = Executors.newSingleThreadExecutor()
@@ -46,22 +58,6 @@ class MainActivity : AppCompatActivity(), SetupFragment.SetupFragmentListener {
         binding = ActivityMainBinding.inflate(layoutInflater)
         val view = binding.root
         setContentView(view)
-//
-//
-//        var isNetworkAvailableMessage = ""
-//        isNetworkAvailableMessage = if (isNetworkAvailable(this@MainActivity))
-//            "Network available"
-//        else
-//            "Network not available"
-//
-//        Toast.makeText(
-//            this@MainActivity,
-//            isNetworkAvailableMessage,
-//            Toast.LENGTH_SHORT
-//        ).show()
-//
-//        getWeather("Lodz")
-//
     }
 
     @RequiresApi(Build.VERSION_CODES.M)
@@ -69,16 +65,101 @@ class MainActivity : AppCompatActivity(), SetupFragment.SetupFragmentListener {
         super.onStart()
         setupViewPager()
         setupUI()
-        val isNetworkAvail = isNetworkAvailable(baseContext)
-//        if (isNetworkAvail) {
-//            requestPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) {
-//                is
-//            }
-//        }
-
-
+        if (isNetworkAvailable(baseContext)) {
+            initializePermissions()
+        } else {
+            Log.d("Network", "NOO")
+            Toast.makeText(
+                this@MainActivity,
+                "No internet connection. Data can be invalid or outdated.",
+                Toast.LENGTH_LONG
+            ).show()
+            // TODO get stored data, if available
+        }
     }
 
+    private fun initializePermissions() {
+        Log.d("Network", "YES")
+        requestPermissionLauncher =
+            registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
+                Log.d("PERMISSION", "Checking permission for location")
+                if (isGranted) {
+                    Log.d("PERMISSION", "Location permission granted")
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                        receiveLocation()
+                    }
+                } else {
+//                    // TODO read from file
+                    Log.d("PERMISSION", "not granted, read from file")
+                }
+            }
+
+        if (ContextCompat.checkSelfPermission(
+                this,
+                ACCESS_COARSE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
+        ) {
+            Log.d("PERMISSION", "Location permission granted")
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                receiveLocation()
+            }
+        } else {
+            Log.d("PERMISSION", "Asking for Location permission")
+            requestPermissionLauncher.launch(ACCESS_COARSE_LOCATION)
+        }
+        Log.d("------------------", "network avail end")
+    }
+
+    @RequiresApi(Build.VERSION_CODES.M)
+    private fun receiveLocation() {
+        locationManager =
+            getSystemService(LOCATION_SERVICE) as LocationManager
+        val isNetworkAvailable =
+            locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
+        val locationListener =
+            LocationListener { location -> currentLocation = location }
+        if (isNetworkAvailable) {
+            if (ActivityCompat.checkSelfPermission(
+                    this,
+                    Manifest.permission.ACCESS_FINE_LOCATION
+                ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                    this,
+                    ACCESS_COARSE_LOCATION
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                return
+            }
+            locationManager.requestLocationUpdates(
+                LocationManager.NETWORK_PROVIDER,
+                5000,
+                0F,
+                locationListener
+            )
+        } else {
+            Toast.makeText(
+                this@MainActivity,
+                "Error: Network provider",
+                Toast.LENGTH_SHORT
+            ).show()
+            return
+        }
+
+        val lastKnownLocationFromNetwork =
+            locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
+        lastKnownLocationFromNetwork?.let { currentLocation = lastKnownLocationFromNetwork }
+
+        Log.d("LOCATION", lastKnownLocationFromNetwork.toString())
+
+        val geocoder = Geocoder(this, Locale.getDefault())
+        val address =
+            geocoder.getFromLocation(currentLocation!!.latitude, currentLocation!!.longitude, 1)
+        if (address != null && address.size > 0) {
+            val city = address[0].locality
+            Log.d("LOCATION", city)
+            Toast.makeText(this@MainActivity, city.toString(), Toast.LENGTH_LONG).show()
+            // TODO get weather from this point
+        }
+    }
 
     @SuppressLint("")
     fun executorFirst(city: String) {
