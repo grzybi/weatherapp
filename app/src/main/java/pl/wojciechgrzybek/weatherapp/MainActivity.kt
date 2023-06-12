@@ -25,6 +25,7 @@ import android.location.LocationManager
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Build
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
@@ -307,6 +308,9 @@ class MainActivity : AppCompatActivity(), SetupFragment.SetupFragmentListener {
 //                        firstFragment.cityLabel.text = response.body().toString()
                         findViewById<TextView>(R.id.lat_label).text = response.body().toString()
                         findViewById<TextView>(R.id.city_label).text = response.body()!!.name.toString()
+
+                        findViewById<TextView>(R.id.lon_label).text = response.body()!!.weather[0].main.toString()
+                        findViewById<ImageView>(R.id.imgMain).setImageResource(R.drawable.ic_sun)
                     } else {
 
 
@@ -342,7 +346,7 @@ class MainActivity : AppCompatActivity(), SetupFragment.SetupFragmentListener {
                         Log.d("__RESPONSE__FORECAST__", response.body().toString())
 //                        firstFragment.cityLabel.text = response.body().toString()
 //                        findViewById<TextView>(R.id.lat_label).text = response.body().toString()
-//                        findViewById<TextView>(R.id.city_label).text = response.body()!!.name.toString()
+//                        findViewById<TextView>(R.id.city_label).text = response.body()!!.name.toString(
                     } else {
 
 
@@ -355,6 +359,10 @@ class MainActivity : AppCompatActivity(), SetupFragment.SetupFragmentListener {
             }
         )
     }
+
+//    private fun getWeatherIcon(weatherGroup) {
+//
+//    }
 
 
     fun onFirstFragmentCreated() {
