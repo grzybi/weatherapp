@@ -5,6 +5,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import pl.wojciechgrzybek.weatherapp.databinding.FirstFragmentBinding
@@ -14,6 +15,7 @@ class FirstFragment : Fragment(R.layout.first_fragment) {
     private lateinit var binding: FirstFragmentBinding
 
     lateinit var cityLabel: TextView
+    lateinit var ivWeather: ImageView
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -22,7 +24,8 @@ class FirstFragment : Fragment(R.layout.first_fragment) {
     ): View? {
         val view = inflater.inflate(R.layout.first_fragment, container, false)
         binding = FirstFragmentBinding.inflate(layoutInflater)
-        cityLabel = view.findViewById(R.id.city_label)
+
+//        cityLabel = view.findViewById(R.id.city_label)
         return view
 
 //        return binding.root
@@ -32,6 +35,7 @@ class FirstFragment : Fragment(R.layout.first_fragment) {
         super.onViewCreated(view, savedInstanceState)
 
         setupData()
+       // ivWeather.setImageResource(R.drawable.ic_cloud_snow)
         val textView = getView()?.findViewById<TextView>(R.id.headerLabel)
         textView?.text = "test"
         textView?.setOnClickListener{testClick()}

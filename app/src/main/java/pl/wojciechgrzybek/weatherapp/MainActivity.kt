@@ -41,7 +41,9 @@ import pl.wojciechgrzybek.weatherapp.service.ForecastService
 import pl.wojciechgrzybek.weatherapp.service.WeatherService
 import retrofit2.*
 import retrofit2.converter.gson.GsonConverterFactory
+import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.math.roundToInt
 
 class MainActivity : AppCompatActivity(), SetupFragment.SetupFragmentListener {
 
@@ -306,19 +308,21 @@ class MainActivity : AppCompatActivity(), SetupFragment.SetupFragmentListener {
                     if (response.isSuccessful) {
                         Log.d("__RESPONSE__WEATHER___", response.body().toString())
 //                        firstFragment.cityLabel.text = response.body().toString()
-                        findViewById<TextView>(R.id.lat_label).text = response.body().toString()
-                        findViewById<TextView>(R.id.city_label).text =
-                            response.body()!!.name.toString()
-
-                        val weatherMain = response.body()!!.weather[0].main.toString()
-                        findViewById<TextView>(R.id.lon_label).text = weatherMain
+                        val responseBody = response.body()
+                        val weatherMain = responseBody!!.weather[0].main.toString()
+                        findViewById<TextView>(R.id.tvCity).text = responseBody!!.name
                         findViewById<ImageView>(R.id.imgMain).setImageResource(
-                            getWeatherIcon(
-                                weatherMain
-                            )
-                        )
-                    } else {
+                            getWeatherIcon(weatherMain))
+                        findViewById<ImageView>(R.id.ivWeather).setImageResource(
+                            getWeatherIcon(weatherMain))
+                        findViewById<TextView>(R.id.tvDescription).text = responseBody!!.weather[0].description
+                        findViewById<TextView>(R.id.tvTemp).text = responseBody!!.main.temp.roundToInt().toString()
+                        findViewById<TextView>(R.id.tvPressure).text = responseBody!!.main.pressure.toString()
+                        findViewById<TextView>(R.id.tvRefreshTime).text = SimpleDateFormat("HH:mm").format(Calendar.getInstance().time)
+
                         
+                    } else {
+
                     }
                 }
 
