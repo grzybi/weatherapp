@@ -29,7 +29,7 @@ class SecondFragment : Fragment() {
     }
 
     private fun setupData() {
-        binding.txtMain.text = getString(R.string.second_fragment_label)
-        binding.imgMain.setImageResource(R.mipmap.ic_launcher)
+//        binding.txtMain.text = getString(R.string.second_fragment_label)
+//        binding.imgMain.setImageResource(R.mipmap.ic_launcher)
     }
 }

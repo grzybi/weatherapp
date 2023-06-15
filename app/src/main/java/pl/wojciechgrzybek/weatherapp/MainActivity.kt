@@ -189,7 +189,6 @@ class MainActivity : AppCompatActivity(), SetupFragment.SetupFragmentListener {
     fun executorFirst(city: String) {
         executor.execute {
             try {
-//                val response = null
                 val response: String? = try {
                     Log.d("api", api.toString())
                     Log.d("city", city.toString())
@@ -310,17 +309,42 @@ class MainActivity : AppCompatActivity(), SetupFragment.SetupFragmentListener {
 //                        firstFragment.cityLabel.text = response.body().toString()
                         val responseBody = response.body()
                         val weatherMain = responseBody!!.weather[0].main.toString()
-                        findViewById<TextView>(R.id.tvCity).text = responseBody!!.name
+                        findViewById<TextView>(R.id.tvCity).text = responseBody.name
                         findViewById<ImageView>(R.id.imgMain).setImageResource(
-                            getWeatherIcon(weatherMain))
+                            getWeatherIcon(weatherMain)
+                        )
                         findViewById<ImageView>(R.id.ivWeather).setImageResource(
-                            getWeatherIcon(weatherMain))
-                        findViewById<TextView>(R.id.tvDescription).text = responseBody!!.weather[0].description
-                        findViewById<TextView>(R.id.tvTemp).text = responseBody!!.main.temp.roundToInt().toString()
-                        findViewById<TextView>(R.id.tvPressure).text = responseBody!!.main.pressure.toString()
-                        findViewById<TextView>(R.id.tvRefreshTime).text = SimpleDateFormat("HH:mm").format(Calendar.getInstance().time)
+                            getWeatherIcon(weatherMain)
+                        )
+                        findViewById<TextView>(R.id.tvDescription).text =
+                            responseBody.weather[0].description
+                        findViewById<TextView>(R.id.tvTemp).text =
+                            responseBody.main.temp.roundToInt().toString()
+                        findViewById<TextView>(R.id.tvPressure).text =
+                            responseBody.main.pressure.toString()
+                        findViewById<TextView>(R.id.tvRefreshTime).text =
+                            SimpleDateFormat("HH:mm").format(Calendar.getInstance().time)
 
+                        findViewById<TextView>(R.id.tvCity2).text = responseBody.name
+
+                        val dir = ((responseBody.wind.deg + 22.5) % 360 / 45).toInt()
+                        Log.d("kierunek", dir.toString())
+                        val dirName: Array<String> =
+                            arrayOf("N", "NE", "E", "SE", "S", "SW", "W", "NW")
                         
+                        findViewById<TextView>(R.id.tvWindDetails).text = buildString {
+                            append(responseBody.wind.speed.roundToInt())
+                            append("m/s ")
+                            append(dirName[dir])
+                        }
+                        findViewById<TextView>(R.id.tvHumidityDetails).text = buildString {
+                            append(responseBody.main.humidity)
+                            append("%")
+                        }
+                        findViewById<TextView>(R.id.tvVisibilityDetails).text = buildString {
+                            append(responseBody.visibility)
+                            append("m")
+                        }
                     } else {
 
                     }
