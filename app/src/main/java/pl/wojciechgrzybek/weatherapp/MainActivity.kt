@@ -26,12 +26,15 @@ import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Build
 import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
 import com.google.gson.Gson
@@ -310,9 +313,7 @@ class MainActivity : AppCompatActivity(), SetupFragment.SetupFragmentListener {
                         val responseBody = response.body()
                         val weatherMain = responseBody!!.weather[0].main.toString()
                         findViewById<TextView>(R.id.tvCity).text = responseBody.name
-                        findViewById<ImageView>(R.id.imgMain).setImageResource(
-                            getWeatherIcon(weatherMain)
-                        )
+
                         findViewById<ImageView>(R.id.ivWeather).setImageResource(
                             getWeatherIcon(weatherMain)
                         )
@@ -331,7 +332,7 @@ class MainActivity : AppCompatActivity(), SetupFragment.SetupFragmentListener {
                         Log.d("kierunek", dir.toString())
                         val dirName: Array<String> =
                             arrayOf("N", "NE", "E", "SE", "S", "SW", "W", "NW")
-                        
+
                         findViewById<TextView>(R.id.tvWindDetails).text = buildString {
                             append(responseBody.wind.speed.roundToInt())
                             append("m/s ")
@@ -367,7 +368,7 @@ class MainActivity : AppCompatActivity(), SetupFragment.SetupFragmentListener {
             retrofit.create<ForecastService>(ForecastService::class.java)
 
         val listCall: Call<ForecastModel> =
-            service.getForecast(null, null, city, "metric", appId, cnt = 10)
+            service.getForecast(null, null, city, "metric", appId, cnt = 40)
 
         listCall.enqueue(
             object : Callback<ForecastModel> {
@@ -377,6 +378,11 @@ class MainActivity : AppCompatActivity(), SetupFragment.SetupFragmentListener {
                 ) {
                     if (response.isSuccessful) {
                         Log.d("__RESPONSE__FORECAST__", response.body().toString())
+                        val responseBody = response.body()
+
+                        val forecastView = findViewById<RecyclerView>(R.id.recyclerView)
+                        forecastView.layoutManager = LinearLayoutManager(baseContext)
+                        forecastView.adapter = responseBody?.let { ForecastAdapter(it.list) }
 //                        firstFragment.cityLabel.text = response.body().toString()
 //                        findViewById<TextView>(R.id.lat_label).text = response.body().toString()
 //                        findViewById<TextView>(R.id.city_label).text = response.body()!!.name.toString(

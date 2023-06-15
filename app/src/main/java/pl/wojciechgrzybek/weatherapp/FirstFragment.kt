@@ -36,9 +36,9 @@ class FirstFragment : Fragment(R.layout.first_fragment) {
 
         setupData()
        // ivWeather.setImageResource(R.drawable.ic_cloud_snow)
-        val textView = getView()?.findViewById<TextView>(R.id.headerLabel)
-        textView?.text = "test"
-        textView?.setOnClickListener{testClick()}
+//        val textView = getView()?.findViewById<TextView>(R.id.headerLabel)
+//        textView?.text = "test"
+//        textView?.setOnClickListener{testClick()}
     }
 
     override fun onStart() {
