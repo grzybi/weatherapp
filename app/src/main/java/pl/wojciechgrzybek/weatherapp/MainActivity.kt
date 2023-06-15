@@ -25,12 +25,16 @@ import android.location.LocationManager
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Build
+import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
 import com.google.gson.Gson
@@ -40,7 +44,9 @@ import pl.wojciechgrzybek.weatherapp.service.ForecastService
 import pl.wojciechgrzybek.weatherapp.service.WeatherService
 import retrofit2.*
 import retrofit2.converter.gson.GsonConverterFactory
+import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.math.roundToInt
 
 class MainActivity : AppCompatActivity(), SetupFragment.SetupFragmentListener {
 
@@ -186,7 +192,6 @@ class MainActivity : AppCompatActivity(), SetupFragment.SetupFragmentListener {
     fun executorFirst(city: String) {
         executor.execute {
             try {
-//                val response = null
                 val response: String? = try {
                     Log.d("api", api.toString())
                     Log.d("city", city.toString())
@@ -305,10 +310,43 @@ class MainActivity : AppCompatActivity(), SetupFragment.SetupFragmentListener {
                     if (response.isSuccessful) {
                         Log.d("__RESPONSE__WEATHER___", response.body().toString())
 //                        firstFragment.cityLabel.text = response.body().toString()
-                        findViewById<TextView>(R.id.lat_label).text = response.body().toString()
-                        findViewById<TextView>(R.id.city_label).text = response.body()!!.name.toString()
-                    } else {
+                        val responseBody = response.body()
+                        val weatherMain = responseBody!!.weather[0].main.toString()
+                        findViewById<TextView>(R.id.tvCity).text = responseBody.name
 
+                        findViewById<ImageView>(R.id.ivWeather).setImageResource(
+                            getWeatherIcon(weatherMain)
+                        )
+                        findViewById<TextView>(R.id.tvDescription).text =
+                            responseBody.weather[0].description
+                        findViewById<TextView>(R.id.tvTemp).text =
+                            responseBody.main.temp.roundToInt().toString()
+                        findViewById<TextView>(R.id.tvPressure).text =
+                            responseBody.main.pressure.toString()
+                        findViewById<TextView>(R.id.tvRefreshTime).text =
+                            SimpleDateFormat("HH:mm").format(Calendar.getInstance().time)
+
+                        findViewById<TextView>(R.id.tvCity2).text = responseBody.name
+
+                        val dir = ((responseBody.wind.deg + 22.5) % 360 / 45).toInt()
+                        Log.d("kierunek", dir.toString())
+                        val dirName: Array<String> =
+                            arrayOf("N", "NE", "E", "SE", "S", "SW", "W", "NW")
+
+                        findViewById<TextView>(R.id.tvWindDetails).text = buildString {
+                            append(responseBody.wind.speed.roundToInt())
+                            append("m/s ")
+                            append(dirName[dir])
+                        }
+                        findViewById<TextView>(R.id.tvHumidityDetails).text = buildString {
+                            append(responseBody.main.humidity)
+                            append("%")
+                        }
+                        findViewById<TextView>(R.id.tvVisibilityDetails).text = buildString {
+                            append(responseBody.visibility)
+                            append("m")
+                        }
+                    } else {
 
                     }
                 }
@@ -330,7 +368,7 @@ class MainActivity : AppCompatActivity(), SetupFragment.SetupFragmentListener {
             retrofit.create<ForecastService>(ForecastService::class.java)
 
         val listCall: Call<ForecastModel> =
-            service.getForecast(null, null, city, "metric", appId, cnt = 10)
+            service.getForecast(null, null, city, "metric", appId, cnt = 40)
 
         listCall.enqueue(
             object : Callback<ForecastModel> {
@@ -340,9 +378,14 @@ class MainActivity : AppCompatActivity(), SetupFragment.SetupFragmentListener {
                 ) {
                     if (response.isSuccessful) {
                         Log.d("__RESPONSE__FORECAST__", response.body().toString())
+                        val responseBody = response.body()
+
+                        val forecastView = findViewById<RecyclerView>(R.id.recyclerView)
+                        forecastView.layoutManager = LinearLayoutManager(baseContext)
+                        forecastView.adapter = responseBody?.let { ForecastAdapter(it.list) }
 //                        firstFragment.cityLabel.text = response.body().toString()
 //                        findViewById<TextView>(R.id.lat_label).text = response.body().toString()
-//                        findViewById<TextView>(R.id.city_label).text = response.body()!!.name.toString()
+//                        findViewById<TextView>(R.id.city_label).text = response.body()!!.name.toString(
                     } else {
 
 
@@ -356,6 +399,17 @@ class MainActivity : AppCompatActivity(), SetupFragment.SetupFragmentListener {
         )
     }
 
+    private fun getWeatherIcon(weatherMain: String): Int {
+        return when (weatherMain) {
+            "Clear" -> R.drawable.ic_sun
+            "Clouds" -> R.drawable.ic_clouds
+            "Drizzle" -> R.drawable.ic_cloud_drizzle
+            "Rain" -> R.drawable.ic_cloud_rain_heavy
+            "Snow" -> R.drawable.ic_cloud_snow
+            "Thunderstorm" -> R.drawable.ic_cloud_lightning
+            else -> R.drawable.ic_cloud_haze2
+        }
+    }
 
     fun onFirstFragmentCreated() {
         Log.d("test", "first fragmentCreated")
