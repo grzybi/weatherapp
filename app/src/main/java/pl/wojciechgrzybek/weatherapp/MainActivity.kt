@@ -184,7 +184,7 @@ class MainActivity : AppCompatActivity(), SetupFragment.SetupFragmentListener {
             val city = address[0].locality
             Log.d("LOCATION", city)
             //Toast.makeText(this@MainActivity, city.toString(), Toast.LENGTH_LONG).show()
-            // TODO get weather from this point
+            getWeather(city)
         }
     }
 
