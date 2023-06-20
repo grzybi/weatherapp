@@ -17,6 +17,7 @@ import java.net.URL
 import java.util.concurrent.Executor
 import java.util.concurrent.Executors
 import android.content.Context
+import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.location.Geocoder
 import android.location.Location
@@ -38,6 +39,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
 import com.google.gson.Gson
+import org.json.JSONObject
 import pl.wojciechgrzybek.weatherapp.model.ForecastModel
 import pl.wojciechgrzybek.weatherapp.model.WeatherModel
 import pl.wojciechgrzybek.weatherapp.service.ForecastService
@@ -57,6 +59,7 @@ class MainActivity : AppCompatActivity(), SetupFragment.SetupFragmentListener {
     private lateinit var firstFragment: FirstFragment
     private lateinit var requestPermissionLauncher: ActivityResultLauncher<String>
     private lateinit var locationManager: LocationManager
+    private lateinit var sharedPreferences: SharedPreferences
     private var currentLocation: Location? = null
 
     private val handler = Handler(Looper.getMainLooper())
@@ -79,6 +82,7 @@ class MainActivity : AppCompatActivity(), SetupFragment.SetupFragmentListener {
     @RequiresApi(Build.VERSION_CODES.M)
     override fun onStart() {
         super.onStart()
+        sharedPreferences = getPreferences(Context.MODE_PRIVATE)
         setupViewPager()
         setupUI()
         if (isNetworkAvailable(baseContext)) {
@@ -90,7 +94,18 @@ class MainActivity : AppCompatActivity(), SetupFragment.SetupFragmentListener {
                 "No internet connection. Data can be invalid or outdated.",
                 Toast.LENGTH_LONG
             ).show()
-            // TODO get stored data, if available
+            try {
+                val shared = sharedPreferences.getString("weather", null)
+                if (shared != null) {
+                    val json = JSONObject(shared)
+                    Log.d("JSON", json.toString())
+                    val storedCity = json.getString("city")
+                    findViewById<TextView>(R.id.tvCity).text = storedCity
+                    findViewById<TextView>(R.id.tvCity2).text = storedCity
+                }
+            } catch (exp: Exception ) {
+                Log.d("Error", "WeatherApp: " ,exp)
+            }
         }
     }
 
