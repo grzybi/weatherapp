@@ -68,6 +68,7 @@ class MainActivity : AppCompatActivity(), OnImageViewClickListener {
     private val handler = Handler(Looper.getMainLooper())
     private val executor: Executor = Executors.newSingleThreadExecutor()
     private val api: String = "72b07a9589d4af1914df47d3a2bb786b"
+    private lateinit var units: String
 
     override fun onBuildingImageClick() {
         Log.d("t", "t")
@@ -82,12 +83,21 @@ class MainActivity : AppCompatActivity(), OnImageViewClickListener {
         Log.d("hello", "world")
         super.onCreate(savedInstanceState)
 
+        sharedPreferences = getSharedPreferences("WeatherApp", Context.MODE_PRIVATE)
+        units = sharedPreferences.getString("setup.units", null).toString()
+        if (units == "null") {
+            units = "metric"
+            sharedPreferences.edit().putString("setup.units", units).apply()
+        }
+
+
         binding = ActivityMainBinding.inflate(layoutInflater)
         val view = binding.root
 //        firstFragment = supportFragmentManager.findFragmentById(R.id.FirstFragment) as FirstFragment
 
         setContentView(view)
-        val fragmentWithBuilding = supportFragmentManager.findFragmentById(R.id.FirstFragment) as? FirstFragment
+        val fragmentWithBuilding =
+            supportFragmentManager.findFragmentById(R.id.FirstFragment) as? FirstFragment
         if (fragmentWithBuilding == null)
             Log.d("fragment", "null")
         else
@@ -98,11 +108,9 @@ class MainActivity : AppCompatActivity(), OnImageViewClickListener {
     }
 
 
-
-        @RequiresApi(Build.VERSION_CODES.M)
+    @RequiresApi(Build.VERSION_CODES.M)
     override fun onStart() {
         super.onStart()
-        sharedPreferences = getSharedPreferences("WeatherApp", Context.MODE_PRIVATE)
         setupViewPager()
         setupUI()
 
@@ -125,8 +133,8 @@ class MainActivity : AppCompatActivity(), OnImageViewClickListener {
                     findViewById<TextView>(R.id.tvCity2).text = storedCity
 
                 }
-            } catch (exp: Exception ) {
-                Log.d("Error", "WeatherApp: " ,exp)
+            } catch (exp: Exception) {
+                Log.d("Error", "WeatherApp: ", exp)
             }
         }
     }
@@ -236,7 +244,7 @@ class MainActivity : AppCompatActivity(), OnImageViewClickListener {
                 val response: String? = try {
                     Log.d("api", api.toString())
                     Log.d("city", city.toString())
-                    URL("https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${api}").readText(
+                    URL("https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${api}&units=${units}").readText(
                         Charsets.UTF_8
                     )
 
@@ -387,7 +395,7 @@ class MainActivity : AppCompatActivity(), OnImageViewClickListener {
             retrofit.create<WeatherService>(WeatherService::class.java)
 
         val listCall: Call<WeatherModel> =
-            service.getWeather(null, null, city, "metric", appId)
+            service.getWeather(null, null, city, units, appId)
 
         listCall.enqueue(
             object : Callback<WeatherModel> {
@@ -457,7 +465,7 @@ class MainActivity : AppCompatActivity(), OnImageViewClickListener {
             retrofit.create<ForecastService>(ForecastService::class.java)
 
         val listCall: Call<ForecastModel> =
-            service.getForecast(null, null, city, "metric", appId, cnt = 40)
+            service.getForecast(null, null, city, units, appId, cnt = 40)
 
         listCall.enqueue(
             object : Callback<ForecastModel> {
@@ -471,7 +479,7 @@ class MainActivity : AppCompatActivity(), OnImageViewClickListener {
 
                         val forecastView = findViewById<RecyclerView>(R.id.recyclerView)
                         forecastView.layoutManager = LinearLayoutManager(baseContext)
-                        forecastView.adapter = responseBody?.let { ForecastAdapter(it.list) }
+                        forecastView.adapter = responseBody?.let { ForecastAdapter(it.list, units) }
 //                        firstFragment.cityLabel.text = response.body().toString()
 //                        findViewById<TextView>(R.id.lat_label).text = response.body().toString()
 //                        findViewById<TextView>(R.id.city_label).text = response.body()!!.name.toString(

@@ -10,7 +10,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.math.roundToInt
 
-class ForecastAdapter(private val data: List<WeatherList>) :
+class ForecastAdapter(private val data: List<WeatherList>, private val units: String) :
     RecyclerView.Adapter<ForecastAdapter.EntryHolder>() {
     inner class EntryHolder(binding: ForecastRowBinding) : ViewHolder(binding.root) {
         val tvDate = binding.tvDate
@@ -36,9 +36,10 @@ class ForecastAdapter(private val data: List<WeatherList>) :
         holder.tvDescription.text = data[position].weather[0].description
 
         val temp = data[position].main.temp.roundToInt().toString()
+
         holder.tvTemp.text = buildString {
             append(temp)
-            append("°C")
+            append(if (units == "metric") "°C" else "°F")
         }
 
         holder.ivWeatherImage.setImageResource(getWeatherIcon(data[position].weather[0].main))
