@@ -102,7 +102,7 @@ class MainActivity : AppCompatActivity(), OnImageViewClickListener {
         @RequiresApi(Build.VERSION_CODES.M)
     override fun onStart() {
         super.onStart()
-        sharedPreferences = getPreferences(Context.MODE_PRIVATE)
+        sharedPreferences = getSharedPreferences("WeatherApp", Context.MODE_PRIVATE)
         setupViewPager()
         setupUI()
 
@@ -331,6 +331,11 @@ class MainActivity : AppCompatActivity(), OnImageViewClickListener {
             Log.d("test", "test")
             val intent = Intent(this, CityListActivity::class.java)
             startActivity(intent)
+        }
+
+        val ivSettings = binding.ivSettings
+        ivSettings.setOnClickListener {
+            Log.d("test", sharedPreferences.all.toString())
         }
     }
 
