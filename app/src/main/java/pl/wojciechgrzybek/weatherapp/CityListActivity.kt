@@ -7,13 +7,15 @@ import android.os.Bundle
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
-import android.widget.Toast
+import android.widget.EditText
+import androidx.appcompat.app.AlertDialog
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 
 class CityListActivity : AppCompatActivity() {
 
     private lateinit var sharedPreferences: SharedPreferences
+    private var enteredCity: String = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -26,7 +28,7 @@ class CityListActivity : AppCompatActivity() {
         val rvCities = findViewById<RecyclerView>(R.id.rvCityList)
         rvCities.layoutManager = LinearLayoutManager(baseContext)
         val cities: List<String> = listOf("123", "456")
-        rvCities.adapter = cities?.let { CityListAdapter(it.toList()) }
+        rvCities.adapter = CityListAdapter(cities.toList())
     }
 
     override fun onStart() {
@@ -44,13 +46,13 @@ class CityListActivity : AppCompatActivity() {
                 return true
             }
             R.id.action_add -> {
-                Log.d("----- menu", "add")
-                Toast.makeText(this@CityListActivity, "add", Toast.LENGTH_LONG).show()
+                showSearchCityDialog(this)
+
+                // TODO implement
                 return true
             }
             R.id.action_manage -> {
-                Log.d("----- menu", "manage")
-                Toast.makeText(this@CityListActivity, "manage", Toast.LENGTH_LONG).show()
+                // TODO implement
                 return true
             }
 
@@ -61,5 +63,23 @@ class CityListActivity : AppCompatActivity() {
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.menu_add_city, menu)
         return true
+    }
+
+    private fun showSearchCityDialog(context: Context) {
+        val alertDialogBuilder = AlertDialog.Builder(context)
+        val etCity = EditText(context)
+
+        alertDialogBuilder.setView(etCity)
+        alertDialogBuilder.setTitle("Search city")
+        alertDialogBuilder.setMessage("Enter city name")
+        alertDialogBuilder.setPositiveButton("OK") { dialog, which ->
+            enteredCity = etCity.text.toString()
+        }
+        alertDialogBuilder.setNegativeButton("Cancel") { dialog, which ->
+            dialog.dismiss()
+        }
+
+        val alertDialog = alertDialogBuilder.create()
+        alertDialog.show()
     }
 }
