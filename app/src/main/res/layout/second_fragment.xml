@@ -5,18 +5,40 @@
     android:layout_height="match_parent"
     android:background="@android:color/holo_red_dark">
 
+    <ImageView
+        android:id="@+id/ivBuilding2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/ic_buildings"
+        android:layout_margin="16dp"
+        app:tint="@android:color/white"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.5"/>
+
     <TextView
         android:id="@+id/tvCity2"
         android:layout_width="wrap_content"
         android:layout_height="60dp"
-        android:layout_marginTop="24dp"
         android:text="City name"
-        android:textColor="@android:color/white"
         android:textSize="40sp"
         android:textStyle="bold"
+        android:textColor="@android:color/white"
+        app:layout_constraintStart_toEndOf="@+id/ivBuilding2"
+        app:layout_constraintEnd_toStartOf="@+id/ivSettings2"
+        app:layout_constraintTop_toTopOf="parent"
+        />
+
+    <ImageView
+        android:id="@+id/ivSettings2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/ic_buildings"
+        android:layout_margin="16dp"
+        app:tint="@android:color/white"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.5"/>
 
     <TextView
         android:id="@+id/tvWind"

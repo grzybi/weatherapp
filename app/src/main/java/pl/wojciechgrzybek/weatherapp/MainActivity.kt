@@ -7,18 +7,19 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
-import android.widget.Button
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.viewpager2.widget.ViewPager2
 import pl.wojciechgrzybek.weatherapp.databinding.ActivityMainBinding
-import pl.wojciechgrzybek.weatherapp.databinding.FirstFragmentBinding
 import java.net.URL
 import java.util.concurrent.Executor
 import java.util.concurrent.Executors
 import android.content.Context
+import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
+import android.content.res.ColorStateList
+import android.graphics.Color
 import android.location.Geocoder
 import android.location.Location
 import android.location.LocationListener
@@ -26,8 +27,8 @@ import android.location.LocationManager
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Build
+import android.view.View
 import android.widget.ImageView
-import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
@@ -38,7 +39,6 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
-import com.google.gson.Gson
 import org.json.JSONObject
 import pl.wojciechgrzybek.weatherapp.model.ForecastModel
 import pl.wojciechgrzybek.weatherapp.model.WeatherModel
@@ -50,21 +50,33 @@ import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.math.roundToInt
 
-class MainActivity : AppCompatActivity(), SetupFragment.SetupFragmentListener {
+class MainActivity : AppCompatActivity(), OnImageViewClickListener {
 
     private val appId: String = "72b07a9589d4af1914df47d3a2bb786b"
     private val baseUrl: String = "https://api.openweathermap.org/data/"
 
     private lateinit var binding: ActivityMainBinding
     private lateinit var firstFragment: FirstFragment
+    private lateinit var viewPager: ViewPager2
     private lateinit var requestPermissionLauncher: ActivityResultLauncher<String>
     private lateinit var locationManager: LocationManager
     private lateinit var sharedPreferences: SharedPreferences
     private var currentLocation: Location? = null
 
+    private lateinit var ivBuilding: TextView
+
     private val handler = Handler(Looper.getMainLooper())
     private val executor: Executor = Executors.newSingleThreadExecutor()
     private val api: String = "72b07a9589d4af1914df47d3a2bb786b"
+
+    override fun onBuildingImageClick() {
+        Log.d("t", "t")
+        Toast.makeText(this@MainActivity, "Building clicked", Toast.LENGTH_LONG).show()
+    }
+
+    override fun onSetupImageClick() {
+        Log.d("t2", "t2")
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         Log.d("hello", "world")
@@ -75,16 +87,25 @@ class MainActivity : AppCompatActivity(), SetupFragment.SetupFragmentListener {
 //        firstFragment = supportFragmentManager.findFragmentById(R.id.FirstFragment) as FirstFragment
 
         setContentView(view)
+        val fragmentWithBuilding = supportFragmentManager.findFragmentById(R.id.FirstFragment) as? FirstFragment
+        if (fragmentWithBuilding == null)
+            Log.d("fragment", "null")
+        else
+            Log.d("fragment", "ok")
+        fragmentWithBuilding?.setOnImageViewClickListener(this)
 
 
     }
 
-    @RequiresApi(Build.VERSION_CODES.M)
+
+
+        @RequiresApi(Build.VERSION_CODES.M)
     override fun onStart() {
         super.onStart()
         sharedPreferences = getPreferences(Context.MODE_PRIVATE)
         setupViewPager()
         setupUI()
+
         if (isNetworkAvailable(baseContext)) {
             initializePermissions()
         } else {
@@ -102,11 +123,16 @@ class MainActivity : AppCompatActivity(), SetupFragment.SetupFragmentListener {
                     val storedCity = json.getString("city")
                     findViewById<TextView>(R.id.tvCity).text = storedCity
                     findViewById<TextView>(R.id.tvCity2).text = storedCity
+
                 }
             } catch (exp: Exception ) {
                 Log.d("Error", "WeatherApp: " ,exp)
             }
         }
+    }
+
+    private fun testClick() {
+        Log.d("click test", "click test")
     }
 
     private fun initializePermissions() {
@@ -244,7 +270,7 @@ class MainActivity : AppCompatActivity(), SetupFragment.SetupFragmentListener {
 
     private fun setupViewPager() {
         val adapter = ViewPagerAdapter(supportFragmentManager, lifecycle)
-        val viewPager = findViewById<ViewPager2>(R.id.viewPager)
+        viewPager = findViewById<ViewPager2>(R.id.viewPager)
         val tabLayout = findViewById<TabLayout>(R.id.tabLayout)
 
         viewPager.adapter = adapter
@@ -257,25 +283,66 @@ class MainActivity : AppCompatActivity(), SetupFragment.SetupFragmentListener {
         }.attach()
 
         viewPager.offscreenPageLimit = 2
+        viewPager.registerOnPageChangeCallback(onPageChangeListener)
     }
 
-    private fun setupUI() {
-        val buttonCitySearch = binding.buttonCitySearch
+    val onPageChangeListener = object : ViewPager2.OnPageChangeCallback() {
+        override fun onPageSelected(position: Int) {
+            Log.d("Przełączona strona", position.toString())
+            when (position) {
+                0 -> updateCityBanner(R.color.white, R.color.black, true)
+                1 -> updateCityBanner(R.color.black, R.color.white, true)
+                2 -> updateCityBanner(R.color.teal_200, R.color.black, true)
 
-        buttonCitySearch.setOnClickListener {
-            val textInputCity = binding.city
-            Log.d("City to search ", textInputCity.text.toString())
-            getWeather(textInputCity.text.toString())
+
+            }
         }
     }
 
-    override fun onButtonClicked() {
-        Log.d("onbuttonlistener", "click")
+    private fun updateCityBanner(backgroundColor: Int, textColor: Int, isVisible: Boolean) {
+//        binding.root.setBackgroundColor(backgroundColor)
+//        binding.tvCity.setTextColor(textColor)
+//        binding.ivBuilding.imageTintList = ColorStateList.valueOf(Color.rgb(255,0,0))
+//        //binding.tvCity.visibility = if (isVisible) View.VISIBLE else View.GONE
+
     }
 
-    override fun onTextChanged(text: String) {
-        TODO("Not yet implemented")
+    override fun onDestroy() {
+        super.onDestroy()
+        viewPager.unregisterOnPageChangeCallback(onPageChangeListener)
     }
+
+    private fun setupUI() {
+//        val buttonCitySearch = binding.buttonCitySearch
+//
+//        buttonCitySearch.setOnClickListener {
+//            val textInputCity = binding.city
+//            Log.d("City to search ", textInputCity.text.toString())
+//            getWeather(textInputCity.text.toString())
+//        }
+
+//        val city: TextView = findViewById<TextView>(R.id.city)
+//        val one: TextView = findViewById<TextView>(R.id.tvCity)
+//        val building: ImageView = findViewById<ImageView>(R.id.ivBuilding)
+//        building?.setOnClickListener{testClick()}
+
+        val ivBuilding = binding.ivBuilding
+        ivBuilding.setOnClickListener {
+            Log.d("test", "test")
+            val intent = Intent(this, CityListActivity::class.java)
+            startActivity(intent)
+        }
+    }
+
+//    override fun onButtonClicked() {
+//        Log.d("onbuttonlistener", "click")
+//    }
+//
+//
+//
+//    override fun onTextChanged(text: String) {
+//        TODO("Not yet implemented")
+//    }
 
     private fun isNetworkAvailable(context: Context): Boolean {
         val connectivityManager =
@@ -305,6 +372,7 @@ class MainActivity : AppCompatActivity(), SetupFragment.SetupFragmentListener {
     }
 
     private fun getCurrentWeather(city: String) {
+
         val retrofit: Retrofit = Retrofit.Builder()
             .baseUrl(baseUrl)
             .addConverterFactory(GsonConverterFactory.create())
@@ -327,6 +395,7 @@ class MainActivity : AppCompatActivity(), SetupFragment.SetupFragmentListener {
 //                        firstFragment.cityLabel.text = response.body().toString()
                         val responseBody = response.body()
                         val weatherMain = responseBody!!.weather[0].main.toString()
+
                         findViewById<TextView>(R.id.tvCity).text = responseBody.name
 
                         findViewById<ImageView>(R.id.ivWeather).setImageResource(

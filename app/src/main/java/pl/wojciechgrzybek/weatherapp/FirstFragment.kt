@@ -17,6 +17,11 @@ class FirstFragment : Fragment(R.layout.first_fragment) {
     lateinit var cityLabel: TextView
     lateinit var ivWeather: ImageView
 
+    private var onImageViewClickListener: OnImageViewClickListener? = null
+
+    fun setOnImageViewClickListener(listener: OnImageViewClickListener) {
+        onImageViewClickListener = listener
+    }
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -34,7 +39,7 @@ class FirstFragment : Fragment(R.layout.first_fragment) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        setupData()
+//        setupData()
        // ivWeather.setImageResource(R.drawable.ic_cloud_snow)
 //        val textView = getView()?.findViewById<TextView>(R.id.headerLabel)
 //        textView?.text = "test"
@@ -44,7 +49,7 @@ class FirstFragment : Fragment(R.layout.first_fragment) {
     override fun onStart() {
         super.onStart()
         (activity as MainActivity).onFirstFragmentCreated()
-//                setupData()
+                setupData()
     }
 
     private fun testClick() {
@@ -52,6 +57,15 @@ class FirstFragment : Fragment(R.layout.first_fragment) {
     }
 
     private fun setupData() {
+        binding.ivWeather.setOnClickListener {
+            onImageViewClickListener?.onBuildingImageClick()
+        }
+//
+//        binding.ivBuilding.setOnClickListener {
+//            onImageViewClickListener?.onBuildingImageClick()
+//        }
+//        binding.ivWeather.setOnClickListener { Log.d("click", "click")}
+
 //        binding.cityLabel.text = getString(R.string.first_fragment_label)
 //        binding.imgMain.setImageResource(R.mipmap.ic_launcher)
     }
