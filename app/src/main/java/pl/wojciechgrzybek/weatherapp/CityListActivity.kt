@@ -5,6 +5,9 @@ import android.content.SharedPreferences
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import android.view.Menu
+import android.view.MenuItem
+import android.widget.Toast
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 
@@ -15,6 +18,10 @@ class CityListActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_city_list)
+
+        val actionBar = supportActionBar
+        actionBar?.title = "Add city"
+        actionBar?.setDisplayHomeAsUpEnabled(true)
 
         val rvCities = findViewById<RecyclerView>(R.id.rvCityList)
         rvCities.layoutManager = LinearLayoutManager(baseContext)
@@ -28,5 +35,31 @@ class CityListActivity : AppCompatActivity() {
         Log.d("shared", sharedPreferences.all.toString())
         sharedPreferences.edit().putString("Klucz2", "Wartość2").apply()
         Log.d("shared", sharedPreferences.all.toString())
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            android.R.id.home -> {
+                onBackPressed()
+                return true
+            }
+            R.id.action_add -> {
+                Log.d("----- menu", "add")
+                Toast.makeText(this@CityListActivity, "add", Toast.LENGTH_LONG).show()
+                return true
+            }
+            R.id.action_manage -> {
+                Log.d("----- menu", "manage")
+                Toast.makeText(this@CityListActivity, "manage", Toast.LENGTH_LONG).show()
+                return true
+            }
+
+            else -> return super.onOptionsItemSelected(item)
+        }
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.menu_add_city, menu)
+        return true
     }
 }

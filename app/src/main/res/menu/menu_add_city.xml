@@ -1,0 +1,15 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/action_add"
+        android:icon="@drawable/ic_cloud_drizzle"
+        android:title="Add city"
+        app:showAsAction="always" />
+
+    <item
+        android:id="@+id/action_manage"
+        android:icon="@drawable/ic_cloud_haze2"
+        android:title="Edit"
+        app:showAsAction="always" />
+</menu>
