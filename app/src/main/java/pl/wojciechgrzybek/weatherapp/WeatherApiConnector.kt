@@ -2,11 +2,13 @@ package pl.wojciechgrzybek.weatherapp
 
 import android.app.Activity
 import android.content.Context
+import android.content.SharedPreferences
 import android.util.Log
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.gson.Gson
 import pl.wojciechgrzybek.weatherapp.model.ForecastModel
 import pl.wojciechgrzybek.weatherapp.model.WeatherModel
 import pl.wojciechgrzybek.weatherapp.service.ForecastService
@@ -26,6 +28,8 @@ class WeatherApiConnector(private val activity: Activity, private val context: C
 
     var units: String = "metric"
 
+    private lateinit var sharedPreferences: SharedPreferences
+
     fun getWeather(city: String?) {
         if (city != null) {
             getCurrentWeather(city)
@@ -33,7 +37,7 @@ class WeatherApiConnector(private val activity: Activity, private val context: C
         }
     }
 
-    private fun getCurrentWeather(city: String) {
+    fun getCurrentWeather(city: String) {
         val retrofit: Retrofit = Retrofit.Builder()
             .baseUrl(baseUrl)
             .addConverterFactory(GsonConverterFactory.create())
@@ -54,6 +58,15 @@ class WeatherApiConnector(private val activity: Activity, private val context: C
                     if (response.isSuccessful) {
                         Log.d("__RESPONSE__WEATHER___", response.body().toString())
                         val responseBody = response.body()
+
+                        sharedPreferences = context.getSharedPreferences("WeatherApp", Context.MODE_PRIVATE)
+                        Log.d("shared w apiconn", sharedPreferences.all.toString())
+
+                        val weatherResponseJsonString = Gson().toJson(responseBody)
+                        sharedPreferences.edit().putString(city, weatherResponseJsonString).apply()
+                        Log.d("shared w apiconn 2", sharedPreferences.all.toString())
+
+
                         val weatherMain = responseBody!!.weather[0].main.toString()
 
                         activity.findViewById<TextView>(R.id.tvCity).text = responseBody.name
@@ -103,7 +116,7 @@ class WeatherApiConnector(private val activity: Activity, private val context: C
         )
     }
 
-    private fun getForecastWeather(city: String) {
+    fun getForecastWeather(city: String) {
         val retrofit: Retrofit = Retrofit.Builder()
             .baseUrl(baseUrl)
             .addConverterFactory(GsonConverterFactory.create())

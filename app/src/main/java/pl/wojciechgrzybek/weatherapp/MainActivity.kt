@@ -81,7 +81,7 @@ class MainActivity : AppCompatActivity(), OnImageViewClickListener {
         else
             Log.d("fragment", "ok")
         fragmentWithBuilding?.setOnImageViewClickListener(this)
-        
+
     }
 
     @RequiresApi(Build.VERSION_CODES.M)
@@ -213,7 +213,7 @@ class MainActivity : AppCompatActivity(), OnImageViewClickListener {
             Log.d("LOCATION", city)
             //Toast.makeText(this@MainActivity, city.toString(), Toast.LENGTH_LONG).show()
 
-
+            sharedPreferences.edit().putString("current.city", city).apply()
             weatherApiConnector.getWeather(city)
         }
     }
@@ -243,8 +243,6 @@ class MainActivity : AppCompatActivity(), OnImageViewClickListener {
                 0 -> updateCityBanner(R.color.white, R.color.black, true)
                 1 -> updateCityBanner(R.color.black, R.color.white, true)
                 2 -> updateCityBanner(R.color.teal_200, R.color.black, true)
-
-
             }
         }
     }
