@@ -27,16 +27,18 @@ class CityListActivity : AppCompatActivity() {
 
         val rvCities = findViewById<RecyclerView>(R.id.rvCityList)
         rvCities.layoutManager = LinearLayoutManager(baseContext)
-        val cities: List<String> = listOf("123", "456")
+
+        sharedPreferences = getSharedPreferences("WeatherApp", Context.MODE_PRIVATE)
+        Log.d("shared", sharedPreferences.all.toString())
+
+        val cities: MutableSet<String> = sharedPreferences.all.keys
+        cities.remove("setup.units")
         rvCities.adapter = CityListAdapter(cities.toList())
     }
 
     override fun onStart() {
         super.onStart()
-        sharedPreferences = getSharedPreferences("WeatherApp", Context.MODE_PRIVATE)
-        Log.d("shared", sharedPreferences.all.toString())
-        sharedPreferences.edit().putString("Klucz2", "Wartość2").apply()
-        Log.d("shared", sharedPreferences.all.toString())
+
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -74,6 +76,8 @@ class CityListActivity : AppCompatActivity() {
         alertDialogBuilder.setMessage("Enter city name")
         alertDialogBuilder.setPositiveButton("OK") { dialog, which ->
             enteredCity = etCity.text.toString()
+            sharedPreferences.edit().putString(enteredCity, enteredCity).apply()
+            Log.d("shared", sharedPreferences.all.toString())
         }
         alertDialogBuilder.setNegativeButton("Cancel") { dialog, which ->
             dialog.dismiss()
